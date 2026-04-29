@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wellops-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wellops-backend
+  template:
+    metadata:
+      labels:
+        app: wellops-backend
+    spec:
+      containers:
+        - name: wellops-backend
+          image: wellopsacr.azurecr.io/wellops-backend:v1
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: wellops-secret
+          volumeMounts:
+            - name: keyvault-secrets
+              mountPath: "/mnt/secrets"
+              readOnly: true
+      volumes:
+        - name: keyvault-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: wellops-keyvault
