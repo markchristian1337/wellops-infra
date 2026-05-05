@@ -2,6 +2,12 @@
 
 Kubernetes manifests and Azure resource notes for the WellOps Console deployment. Pairs with [wellops-backend](https://github.com/markchristian1337/wellops-backend) and [wellops-frontend](https://github.com/markchristian1337/wellops-frontend).
 
+## Live Demo
+
+[▶ WellOps — Live Azure Deployment Demo](https://www.loom.com/share/11a94f1bc0aa4cc39a60dee1ba846b50)
+
+Demonstrates: AKS deployment, RabbitMQ pipeline (simulator → worker → Postgres), rolling average pre-computation, Grafana live dashboard, public API endpoint.
+
 > **Note:** The cluster and managed services are currently scaled down to avoid charges. The manifests and resource definitions in this repo are the full source of truth — `kubectl apply -f` against a fresh AKS cluster recreates the deployment. Cost when running is roughly $200-300/month (1-node AKS + Postgres Flexible Server + ACR + Key Vault + LoadBalancer IP).
 
 ## Structure
