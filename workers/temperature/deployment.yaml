@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temperature-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temperature-worker
+  template:
+    metadata:
+      labels:
+        app: temperature-worker
+    spec:
+      containers:
+        - name: temperature-worker
+          image: wellopsacr.azurecr.io/wellops-worker-temperature:v1
+          envFrom:
+            - secretRef:
+                name: temperature-worker-secret
+          volumeMounts:
+            - name: keyvault-secrets
+              mountPath: "/mnt/secrets"
+              readOnly: true
+      volumes:
+        - name: keyvault-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: temperature-worker-keyvault

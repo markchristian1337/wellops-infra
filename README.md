@@ -16,6 +16,13 @@ wellops-infra/
     deployment.yaml          — RabbitMQ Deployment, image pulled from wellopsacr
     service.yaml             — ClusterIP Service exposing RabbitMQ inside the cluster only
     secretproviderclass.yaml — Tells the CSI driver which Key Vault secrets to mount
+  workers/
+    temperature/
+     deployment.yaml          — Temperature worker Deployment, consumes from RabbitMQ, writes to Postgres
+     secretproviderclass.yaml — Tells the CSI driver which Key Vault secrets to mount
+  simulator/
+    deployment.yaml          — Simulator Deployment, publishes fake sensor readings to RabbitMQ
+    secretproviderclass.yaml — Tells the CSI driver which Key Vault secrets to mount
 ```
 
 ## Architecture
@@ -40,6 +47,15 @@ AKS cluster (wellops-aks, 1 node, standard_dc2ads_v5)
    |         +-- receives messages from simulator
    |         +-- delivers messages to worker pod
    |
+   +-- Temperature worker pod (image from wellopsacr)
+   |         |
+   |         +-- consumes from RabbitMQ
+   |         +-- calculates rolling average
+   |         +-- writes to Postgres
+   |
+   +-- Simulator pod (image from wellopsacr)
+             |
+             +-- publishes fake sensor readings to RabbitMQ
    +-- CSI driver mounts secrets from Azure Key Vault
        (wellopskeyvault, RBAC mode)
        using kubelet managed identity
@@ -49,7 +65,7 @@ AKS cluster (wellops-aks, 1 node, standard_dc2ads_v5)
 
 - **Resource Group:** `wellops-rg` (East US)
 - **AKS:** `wellops-aks`, 1 node, `standard_dc2ads_v5`
-- **ACR:** `wellopsacr` — backend `:v3`, rabbitmq `:3.13.1-management`
+- **ACR:** `wellopsacr` — backend `:v3`, rabbitmq `:3.13.1-management`, worker-temperature `:v1`, simulator `:v1`
 - **Postgres:** `wellops-postgres` (Flexible Server, Central US, `wellops` DB)
 - **Key Vault:** `wellopskeyvault` (RBAC mode), holds DB and RabbitMQ credentials
 - **Identity:** Kubelet managed identity granted "Key Vault Secrets User" role on the vault
@@ -71,6 +87,14 @@ kubectl apply -f backend/service.yaml
 kubectl apply -f rabbitmq/secretproviderclass.yaml
 kubectl apply -f rabbitmq/deployment.yaml
 kubectl apply -f rabbitmq/service.yaml
+
+# apply worker manifests
+kubectl apply -f workers/temperature/secretproviderclass.yaml
+kubectl apply -f workers/temperature/deployment.yaml
+
+# apply simulator manifests
+kubectl apply -f simulator/secretproviderclass.yaml
+kubectl apply -f simulator/deployment.yaml
 ```
 
 ## Secret rotation
@@ -78,8 +102,21 @@ kubectl apply -f rabbitmq/service.yaml
 The K8s Secret is a cached copy of what the CSI driver pulls from Key Vault. To force a refresh:
 
 ```bash
+# backend
 kubectl delete secret wellops-secret
 kubectl rollout restart deployment wellops-backend
+
+# rabbitmq
+kubectl delete secret rabbitmq-secret
+kubectl rollout restart deployment rabbitmq
+
+# worker
+kubectl delete secret temperature-worker-secret
+kubectl rollout restart deployment temperature-worker
+
+# simulator
+kubectl delete secret simulator-secret
+kubectl rollout restart deployment simulator
 ```
 
 The CSI driver re-mounts the secret on pod startup, the cached Secret is repopulated.
