@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simulator
+  template:
+    metadata:
+      labels:
+        app: simulator
+    spec:
+      containers:
+        - name: simulator
+          image: wellopsacr.azurecr.io/wellops-simulator:v4
+          envFrom:
+            - secretRef:
+                name: simulator-secret
+          volumeMounts:
+            - name: keyvault-secrets
+              mountPath: "/mnt/secrets"
+              readOnly: true
+      volumes:
+        - name: keyvault-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: simulator-keyvault
