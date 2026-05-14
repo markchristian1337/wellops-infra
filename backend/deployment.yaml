@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: wellops-backend
-          image: wellopsacr.azurecr.io/wellops-backend:v3
+          image: wellopsacr.azurecr.io/wellops-backend:v4
           ports:
             - containerPort: 8000
           envFrom:

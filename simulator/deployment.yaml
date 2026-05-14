@@ -18,6 +18,8 @@ spec:
           envFrom:
             - secretRef:
                 name: simulator-secret
+            - configMapRef:
+                name: simulator-config
           volumeMounts:
             - name: keyvault-secrets
               mountPath: "/mnt/secrets"

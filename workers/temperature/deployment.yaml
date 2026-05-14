@@ -18,6 +18,8 @@ spec:
           envFrom:
             - secretRef:
                 name: temperature-worker-secret
+            - configMapRef:
+                name: temperature-worker-config
           volumeMounts:
             - name: keyvault-secrets
               mountPath: "/mnt/secrets"
