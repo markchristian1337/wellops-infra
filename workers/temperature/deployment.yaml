@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: temperature-worker
-          image: wellopsacr.azurecr.io/wellops-worker-temperature:v1
+          image: wellopsacr.azurecr.io/wellops-worker-temperature:v2
           envFrom:
             - secretRef:
                 name: temperature-worker-secret

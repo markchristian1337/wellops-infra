@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: simulator
-          image: wellopsacr.azurecr.io/wellops-simulator:v4
+          image: wellopsacr.azurecr.io/wellops-simulator:v5
           envFrom:
             - secretRef:
                 name: simulator-secret
